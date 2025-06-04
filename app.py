@@ -16,19 +16,22 @@ def receber_status():
     try:
         data = request.get_json()
 
-        # Verifica os campos obrigatórios
+        # Verifica campos obrigatórios
         if not all(field in data for field in ("poste_id", "status")):
+            print("[ERRO] JSON incompleto:", data)
             return jsonify({"error": "Campos 'poste_id' e 'status' são obrigatórios."}), 400
 
-        # Anexa timestamp
+        # Timestamp e armazenamento
         data["timestamp"] = datetime.now().isoformat()
         status_data.append(data)
 
-        print(f"[RECEBIDO] {data}")
+        # Log completo
+        print(f"[RECEBIDO] Poste: {data['poste_id']} | Status: {data['status']} | Hora: {data['timestamp']}")
+
         return jsonify({"message": "Status recebido com sucesso."}), 200
 
     except Exception as e:
-        print(f"[ERRO] {e}")
+        print(f"[EXCEÇÃO] {e}")
         return jsonify({"error": "Erro ao processar os dados."}), 500
 
 @app.route('/status', methods=['GET'])
