@@ -14,25 +14,29 @@ def index():
 @app.route('/status', methods=['POST'])
 def receber_status():
     try:
-        data = request.get_json()
+        raw = request.data.decode('utf-8')
+        print(f"[BRUTO] JSON recebido: {raw}")
 
-        # Verifica campos obrigatórios
+        data = request.get_json(force=True, silent=True)
+
+        if data is None:
+            print("[ERRO] Falha ao interpretar JSON")
+            return jsonify({"error": "JSON inválido ou ausente"}), 400
+
         if not all(field in data for field in ("poste_id", "status")):
             print("[ERRO] JSON incompleto:", data)
-            return jsonify({"error": "Campos 'poste_id' e 'status' são obrigatórios."}), 400
+            return jsonify({"error": "Campos obrigatórios ausentes"}), 400
 
-        # Timestamp e armazenamento
         data["timestamp"] = datetime.now().isoformat()
         status_data.append(data)
 
-        # Log completo
         print(f"[RECEBIDO] Poste: {data['poste_id']} | Status: {data['status']} | Hora: {data['timestamp']}")
 
         return jsonify({"message": "Status recebido com sucesso."}), 200
 
     except Exception as e:
         print(f"[EXCEÇÃO] {e}")
-        return jsonify({"error": "Erro ao processar os dados."}), 500
+        return jsonify({"error": "Erro interno"}), 500
 
 @app.route('/status', methods=['GET'])
 def listar_status():
